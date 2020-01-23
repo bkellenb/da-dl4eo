@@ -26,7 +26,7 @@ parser.add_argument('--dataset_target', type=str, default='UCMerced', const=1, n
                     help='Target dataset for model evaluation. One of {"UCMerced", "WHU-RS19"}.')
 parser.add_argument('--dataset_model', type=str, default='WHU-RS19', const=1, nargs='?',
                     help='Dataset the model to be evaluated was trained on. One of {"UCMerced", "WHU-RS19"}.')
-parser.add_argument('--daMethod', type=str, default='MMD', const=1, nargs='?',
+parser.add_argument('--daMethod', type=str, default='', const=1, nargs='?',
                     help='Domain adaptation method, or else empty string if unadapted model. One of {"MMD", "DeepCORAL", "DeepJDOT", ""}.')
 parser.add_argument('--backbone', type=str, default='resnet50', const=1, nargs='?',
                     help='Feature extractor backbone to use (default: "resnet50").')
