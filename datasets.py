@@ -7,9 +7,9 @@ class RSClassificationDataset(Dataset):
     def __init__(self, datasetName, split, classes_subset=None, transform=None):
         super(RSClassificationDataset, self).__init__()
         if datasetName.lower() == 'ucmerced':
-            self.dataRoot = '/mnt/guanabana/raid/data/datasets/UCMerced_LandUse/Images'
+            self.dataRoot = 'datasets/UCMerced_LandUse/Images'
         else:
-            self.dataRoot = '/mnt/guanabana/raid/data/datasets/WHU-RS19'
+            self.dataRoot = 'datasets/WHU-RS19'
         self.split = split
         if isinstance(self.split, int):
             self.split = [self.split]
@@ -106,5 +106,5 @@ def createSplitFile(dataRoot, dataset='UCMerced', split=(0.7,0.1,0.2)):
 
 
 if __name__ == '__main__':
-    createSplitFile('/mnt/guanabana/raid/data/datasets/UCMerced_LandUse/Images', 'UCMerced', split=(0.7,0.1,0.2))
-    createSplitFile('/mnt/guanabana/raid/data/datasets/WHU-RS19', 'WHU-RS19', split=(0.7,0.1,0.2))
+    createSplitFile('datasets/UCMerced', 'UCMerced', split=(0.7,0.1,0.2))
+    createSplitFile('datasets/WHU-RS19', 'WHU-RS19', split=(0.7,0.1,0.2))

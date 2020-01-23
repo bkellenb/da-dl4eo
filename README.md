@@ -15,8 +15,9 @@ The following domain adaptation methodologies are supported:
 
 
 
-## Setup
+## Installation
 
+### Setup code base
 The following instructions apply to [Conda](https://conda.io).
 
 ```console
@@ -26,6 +27,15 @@ The following instructions apply to [Conda](https://conda.io).
     conda install -c conda-forge tqdm pot
     conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 ```
+
+### Download datasets
+
+1. Create folders in the repository root: `mkdir -p datasets/UCMerced; mkdir -p datasets/WHU-RS19`
+2. Download the UC-Merced dataset from [here](http://weegee.vision.ucmerced.edu/datasets/landuse.html) and extract it into the folder `datasets/UCMerced`
+3. Repeat the same for the [WHU-RS19](http://www.xinhua-fluid.com/people/yangwen/WHU-RS19.html) dataset and extract it into the folder `datasets/WHU-RS19` (note: you might need a .rar extraction utility to do so).
+4. Create train/val/test splits: `conda activate da4dl4eo; python datasets.py`
+
+
 
 
 ## Run
