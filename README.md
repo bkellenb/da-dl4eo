@@ -24,7 +24,7 @@ The following instructions apply to [Conda](https://conda.io).
     conda create -y -n da4dl4eo python=3.7
     conda activate da4dl4eo
     conda install -c anaconda scikit-learn
-    conda install -c conda-forge tqdm pot
+    conda install -c conda-forge tqdm matplotlib pot
     conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
 ```
 

@@ -11,6 +11,7 @@ import os
 import argparse
 import glob
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
@@ -32,8 +33,10 @@ parser.add_argument('--backbone', type=str, default='resnet50', const=1, nargs='
                     help='Feature extractor backbone to use (default: "resnet50").')
 parser.add_argument('--batchSize', type=int, default=32, const=1, nargs='?',
                     help='Inference batch size (default: 32).')
+parser.add_argument('--visualize', type=bool, default=True, const=1, nargs='?',
+                    help='Whether to visualize results (confusion matrices; default: True).')
 parser.add_argument('--saveResults', type=bool, default=False, const=1, nargs='?',
-                    help='Whether to save results (statistics and confusion matrices) to disk or not.')
+                    help='Whether to save results (statistics and confusion matrices) to disk or not (default: False).')
 parser.add_argument('--device', type=str, default='cuda:0', const=1, nargs='?',
                     help='Device (default: "cuda:0").')
 args = parser.parse_args()
@@ -140,6 +143,32 @@ if __name__ == '__main__':
     model = loadModel()
     pred, target, confmat = predict(dl_test, model)
 
+    num_class = torch.sum(confmat, dim=0)
+    confmat_rel = confmat / num_class.float()
+
+    if args.visualize:
+        classlist = []
+        for key in classAssoc_inv.keys():
+            classlist.append(classAssoc_inv[key])
+
+        plt.figure(num=1, figsize=(8.5,8))
+        plt.imshow(confmat_rel, cmap='inferno')
+        plt.clim(0, 1)
+        plt.xlabel('Ground Truth')
+        plt.ylabel('Prediction')
+        plt.xticks(range(confmat_rel.size(0)), classlist, rotation=45)
+        plt.yticks(range(confmat_rel.size(0)), classlist)
+        plt.box(on=None)
+
+        ax = plt.gca()
+        for i in range(confmat_rel.size(0)):
+            for j in range(confmat_rel.size(1)):
+                val = confmat_rel[i, j].item()
+                text = ax.text(j, i, '{:.2f}'.format(val),
+                            ha='center', va='center', color=('w' if val < 0.8 else 'k'))
+        plt.show()
+
+
     if args.saveResults:
         # save confusion matrix to LaTeX format
         outDir = 'results/{}/{}'.format(
@@ -147,9 +176,6 @@ if __name__ == '__main__':
                 daMethod
             )
         os.makedirs(outDir, exist_ok=True)
-
-        num_class = torch.sum(confmat, dim=0)
-        confmat_rel = confmat / num_class.float()
 
         ua = confmat_rel.diag() / confmat_rel.sum(0).float()        #TODO: check which one is ua and which one is pa
         pa = confmat_rel.diag() / confmat_rel.sum(1).float()
