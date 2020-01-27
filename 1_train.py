@@ -46,6 +46,7 @@ dataset = args.dataset.lower()
 seed=9375322
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 
 cnnDir = 'cnn_states/{}/{}/'.format(dataset, dataset)
 os.makedirs(cnnDir, exist_ok=True)
@@ -102,7 +103,7 @@ def loadModel():
         startEpoch = max(startEpoch, int(epoch))
     
     if startEpoch > 0:
-        state = torch.load(open(os.path.join(cnnDir, str(startEpoch)+'.pth'), 'rb'))
+        state = torch.load(open(os.path.join(cnnDir, str(startEpoch)+'.pth'), 'rb'), map_location=lambda storage, loc: storage)
         model.load_state_dict(state['model'])
         print('Loaded model epoch {}.'.format(startEpoch))
     else:
@@ -151,10 +152,14 @@ def doEpoch(dataloader, model, epoch, optim=None):
         if optim is None:
             with torch.no_grad():
                 logits = model(data)
+                if logits.dim()==1:
+                    logits = logits.unsqueeze(0)
                 loss = F.cross_entropy(logits, target)
         else:
             optim.zero_grad()
             logits = model(data)
+            if logits.dim()==1:
+                logits = logits.unsqueeze(0)
             loss = F.cross_entropy(logits, target)
             loss.backward()
             optim.step()

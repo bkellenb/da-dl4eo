@@ -32,7 +32,7 @@ parser.add_argument('--backbone', type=str, default='resnet50', const=1, nargs='
                     help='Feature extractor backbone to use (default: "resnet50").')
 parser.add_argument('--batchSize', type=int, default=32, const=1, nargs='?',
                     help='Inference batch size (default: 32).')
-parser.add_argument('--saveResults', type=bool, default=True, const=1, nargs='?',
+parser.add_argument('--saveResults', type=bool, default=False, const=1, nargs='?',
                     help='Whether to save results (statistics and confusion matrices) to disk or not.')
 parser.add_argument('--device', type=str, default='cuda:0', const=1, nargs='?',
                     help='Device (default: "cuda:0").')
@@ -54,6 +54,7 @@ print('Testing model {}/{} on dataset {}'.format(
 seed=9375322
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 
 cnnDir = 'cnn_states/{}/{}/'.format(dataset_model, daMethod)
 
@@ -98,7 +99,7 @@ def loadModel():
         epoch, _ = os.path.splitext(sf.replace(cnnDir, ''))
         startEpoch = max(startEpoch, int(epoch))
     
-    state = torch.load(open(os.path.join(cnnDir, str(startEpoch)+'.pth'), 'rb'))
+    state = torch.load(open(os.path.join(cnnDir, str(startEpoch)+'.pth'), 'rb'), map_location=lambda storage, loc: storage)
     model.load_state_dict(state['model'])
     print('Loaded model epoch {}.'.format(startEpoch))
 

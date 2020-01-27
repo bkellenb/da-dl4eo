@@ -7,7 +7,7 @@ class RSClassificationDataset(Dataset):
     def __init__(self, datasetName, split, classes_subset=None, transform=None):
         super(RSClassificationDataset, self).__init__()
         if datasetName.lower() == 'ucmerced':
-            self.dataRoot = 'datasets/UCMerced_LandUse/Images'
+            self.dataRoot = 'datasets/UCMerced_LandUse'
         else:
             self.dataRoot = 'datasets/WHU-RS19'
         self.split = split
@@ -106,5 +106,5 @@ def createSplitFile(dataRoot, dataset='UCMerced', split=(0.7,0.1,0.2)):
 
 
 if __name__ == '__main__':
-    createSplitFile('datasets/UCMerced', 'UCMerced', split=(0.7,0.1,0.2))
-    createSplitFile('datasets/WHU-RS19', 'WHU-RS19', split=(0.7,0.1,0.2))
+    createSplitFile('datasets/UCMerced_LandUse', 'UCMerced', split=(0.6,0.1,0.3))
+    createSplitFile('datasets/WHU-RS19', 'WHU-RS19', split=(0.6,0.1,0.3))

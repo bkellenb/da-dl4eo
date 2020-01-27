@@ -10,7 +10,6 @@ raw = [
     ['airplane', 'airport'],
     ['beach'],
     ['buildings','denseresidential', 'commercial', 'industrial'],
-    ['chaparral', 'desert'],
     ['forest'],
     ['harbor', 'port'],
     ['mediumresidential', 'residential'],

@@ -59,7 +59,7 @@ Example: train ResNet-18 on UC-Merced:
 Example: adapt a ResNet-18 from UC-Merced to WHU-RS19 using DeepCORAL:
 
 ```console
-    python 2_adapt.py --dataset_source UCMerced --dataset_target WHU-RS19 --daMethod DeepCORAL --backbone ResNet-18
+    python 2_adapt.py --dataset_source UCMerced --dataset_target WHU-RS19 --daMethod DeepCORAL --backbone resnet18
 ```
 
 
@@ -71,11 +71,47 @@ _Note:_ Models that have undergone domain adaptation will be saved in the sub-fo
 Example 1: test a ResNet-18, adapted from UC-Merced to WHU-RS19 using DeepCORAL, on WHU-RS19:
 
 ```console
-    python 3_test.py --dataset_target WHU-RS19 --dataset_model WHU-RS19 --daMethod DeepCORAL --backbone resnet18
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod DeepCORAL --backbone resnet18
 ```
 
 Example 2: test a ResNet-18, trained on UC-Merced without domain adaptation, on WHU-RS19. Also save the resulting statistics to LaTeX files:
 
 ```console
     python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --backbone resnet18 --saveResults 1
+```
+
+
+## Replicate book chapter results
+
+To replicate the results, the following experiments need to be conducted:
+
+```console
+
+    # train base models
+    python 1_train.py --dataset UCMerced
+    python 1_train.py --dataset WHU-RS19
+
+
+    # adapt
+    python 2_adapt.py --dataset_source UCMerced --dataset_target WHU-RS19 --daMethod MMD
+    python 2_adapt.py --dataset_source UCMerced --dataset_target WHU-RS19 --daMethod DeepCORAL
+    python 2_adapt.py --dataset_source UCMerced --dataset_target WHU-RS19 --daMethod DeepJDOT
+
+    python 2_adapt.py --dataset_source WHU-RS19 --dataset_target UCMerced --daMethod MMD
+    python 2_adapt.py --dataset_source WHU-RS19 --dataset_target UCMerced --daMethod DeepCORAL
+    python 2_adapt.py --dataset_source WHU-RS19 --dataset_target UCMerced --daMethod DeepJDOT
+
+
+    # test (order: source only, MMD, DeepCORAL, DeepJDOT, target only; for both UCMerced and WHU-RS19 target datasets)
+    python 3_test.py --dataset_target UCMerced --dataset_model WHU-RS19
+    python 3_test.py --dataset_target UCMerced --dataset_model WHU-RS19 --daMethod MMD
+    python 3_test.py --dataset_target UCMerced --dataset_model WHU-RS19 --daMethod DeepCORAL
+    python 3_test.py --dataset_target UCMerced --dataset_model WHU-RS19 --daMethod DeepJDOT
+    python 3_test.py --dataset_target UCMerced --dataset_model UCMerced
+
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod MMD
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod DeepCORAL
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod DeepJDOT
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model WHU-RS19
 ```

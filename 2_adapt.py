@@ -26,19 +26,23 @@ from datasets import RSClassificationDataset
 
 
 ''' Parameters '''
-parser = argparse.ArgumentParser(description='Domain adaptation for trained base model.')
+parser = argparse.ArgumentParser(description='Domain adaptation for a trained base model.')
 parser.add_argument('--dataset_source', type=str, default='UCMerced', const=1, nargs='?',
                     help='Source dataset. One of {"UCMerced", "WHU-RS19"}.')
 parser.add_argument('--dataset_target', type=str, default='WHU-RS19', const=1, nargs='?',
                     help='Target dataset. One of {"UCMerced", "WHU-RS19"}.')
 parser.add_argument('--daMethod', type=str, default='MMD', const=1, nargs='?',
                     help='Domain adaptation method. One of {"MMD", "DeepCORAL", "DeepJDOT"}.')
+parser.add_argument('--freezeSource', type=bool, default=True, const=1, nargs='?',
+                    help='Whether to freeze the source domain features for adaptation (i.e., predicted by the source model. Default: True).')
+parser.add_argument('--trainSource', type=bool, default=True, const=1, nargs='?',
+                    help='Whether to add a regular cross-entropy loss on source (default: True).')
 parser.add_argument('--backbone', type=str, default='resnet50', const=1, nargs='?',
                     help='Feature extractor backbone to use (default: "resnet50").')
 parser.add_argument('--batchSize', type=int, default=32, const=1, nargs='?',
                     help='Training and evaluation batch size (default: 32).')
-parser.add_argument('--lr', type=float, default=1e-4, const=1, nargs='?',
-                    help='Initial learning rate, reduced by 10 after every 10 epochs (default: 1e-4).')
+parser.add_argument('--lr', type=float, default=1e-5, const=1, nargs='?',
+                    help='Initial learning rate, reduced by 10 after every 10 epochs (default: 1e-5).')
 parser.add_argument('--decay', type=float, default=0.0, const=1, nargs='?',
                     help='Weight decay (default: 0.0).')
 parser.add_argument('--numEpochs', type=int, default=100, const=1, nargs='?',
@@ -64,10 +68,12 @@ print('Adaptation: {} --> {}, using method {}'.format(
 seed=9375322
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
+os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 
 cnnDir_source = 'cnn_states/{}/{}/'.format(dataset_source, dataset_source)
-cnnDir_target = 'cnn_states/{}/{}/'.format(dataset_target, daMethod)
+cnnDir_target = 'cnn_states/{}/{}/'.format(dataset_source, daMethod)
 os.makedirs(cnnDir_target, exist_ok=True)
+print('Saving model in directory "{}"'.format(cnnDir_target))
 
 from classAssoc import classAssoc, classAssoc_inv
 
@@ -96,14 +102,16 @@ def loadDataset(dataset, setIdx, transform):
         labels = [classAssoc[d[1]] for d in data]
         return torch.stack(imgs), torch.tensor(labels, dtype=torch.long)
 
+    ds = RSClassificationDataset(dataset,
+                                    setIdx,
+                                    classAssoc,
+                                    transform)
     return DataLoader(
-        RSClassificationDataset(dataset,
-            setIdx,
-            classAssoc,
-            transform),
+        ds,
         batch_size=args.batchSize,
         collate_fn=collate,
-        shuffle=True
+        shuffle=True,
+        drop_last=(len(ds) > args.batchSize)
         # num_workers=8
     )
 
@@ -121,7 +129,7 @@ def loadModel(cnnDir):
         startEpoch = max(startEpoch, int(epoch))
     
     if startEpoch > 0:
-        state = torch.load(open(os.path.join(cnnDir, str(startEpoch)+'.pth'), 'rb'))
+        state = torch.load(open(os.path.join(cnnDir, str(startEpoch)+'.pth'), 'rb'), map_location=lambda storage, loc: storage)
         model.load_state_dict(state['model'])
         print('Loaded model epoch {}.'.format(startEpoch))
     else:
@@ -261,7 +269,7 @@ def doEpoch(dl_source, dl_target, model_source, model_target, epoch, optim=None)
     model_source.eval()
     model_target.train(optim is not None)
 
-    mmd = MMD_loss()
+    mmd = MMD_loss(kernel_type='linear')
 
     oa_source_total = 0.0
     oa_target_total = 0.0
@@ -282,19 +290,29 @@ def doEpoch(dl_source, dl_target, model_source, model_target, epoch, optim=None)
         data_source, labels_source = data_source.to(args.device), labels_source.to(args.device)
         data_target, labels_target = data_target.to(args.device), labels_target.to(args.device)
 
-        # predict
+
+        # predict source
+        if args.freezeSource:
+            with torch.no_grad():
+                pred_source, fVec_source = model_source(data_source, True)
+
+        elif optim is not None:
+            pred_source, fVec_source = model_target(data_source, True)
+
+        else:
+            with torch.no_grad():
+                pred_source, fVec_source = model_target(data_source, True)
+
+
+        # predict target
         if optim is not None:
             optim.zero_grad()
-            pred_source, fVec_source = model_source(data_source, True)
             pred_target, fVec_target = model_target(data_target, True)
-            pred_sm_source = F.softmax(pred_source, dim=1)
             pred_sm_target = F.softmax(pred_target, dim=1)
 
         else:
             with torch.no_grad():
-                pred_source, fVec_source = model_source(data_source, True)
                 pred_target, fVec_target = model_target(data_target, True)
-                pred_sm_source = F.softmax(pred_source, dim=1)
                 pred_sm_target = F.softmax(pred_target, dim=1)
 
 
@@ -308,11 +326,20 @@ def doEpoch(dl_source, dl_target, model_source, model_target, epoch, optim=None)
         elif daMethod == 'deepjdot':
             loss = deepJDOT(fVec_source, fVec_target, labels_source, pred_sm_target)
         
+        
         if optim is not None:
+            # source loss
+            if args.trainSource:
+                if args.freezeSource:
+                    # re-predict source features with target model
+                    pred_source, fVec_source = model_target(data_source, True)
+                loss += F.cross_entropy(pred_source, labels_source)
+
             loss.backward()
             optim.step()
 
         with torch.no_grad():
+            pred_sm_source = F.softmax(pred_source, dim=1)
             yhat_source = torch.argmax(pred_sm_source, dim=1)
             yhat_target = torch.argmax(pred_sm_target, dim=1)
 
@@ -347,6 +374,10 @@ if __name__ == '__main__':
 
     model_source, _, _ = loadModel(cnnDir_source)
     model_target, state, epoch = loadModel(cnnDir_target)
+    if epoch == 0:
+        print('No target model trained yet; copying from source...')
+        model_target, _, _ = loadModel(cnnDir_source)
+
     optim, scheduler = setupOptimizer(epoch, model_target)
 
     while epoch < args.numEpochs:
