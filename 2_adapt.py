@@ -1,9 +1,9 @@
 '''
     Performs domain adaptation on a model;
     one of the following techniques:
+    - MMD
     - DeepCORAL
     - DeepJDOT
-    - TODO
 
     2020 Benjamin Kellenberger
 '''
