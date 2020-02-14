@@ -1,4 +1,7 @@
-# DA4DL4EO
+# Deep Learning for Earth Observation: Chapter Domain Adaptation
+
+Code base for reproducing the experiments in the book "Deep Learning for Earth Observation," Chapter "Domain Adaptation," Section "1.3.1 Adapting the inner representation."
+
 
 ## Overview
 
