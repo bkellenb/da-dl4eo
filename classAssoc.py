@@ -6,16 +6,16 @@
 '''
 
 raw = [
-    ['agricultural', 'farmland'],
-    ['airplane', 'airport'],
-    ['beach'],
-    ['buildings','denseresidential', 'commercial', 'industrial'],
-    ['forest'],
-    ['harbor', 'port'],
-    ['mediumresidential', 'residential'],
-    ['overpass', 'viaduct'],
-    ['parkinglot', 'parking'],
-    ['river']
+    ['AG', 'agricultural', 'farmland'],
+    ['AP', 'airplane', 'airport'],
+    ['BE', 'beach'],
+    ['DR', 'buildings','denseresidential', 'commercial', 'industrial'],
+    ['FO', 'forest'],
+    ['HA', 'harbor', 'port'],
+    ['MR', 'mediumresidential', 'residential'],
+    ['VI', 'overpass', 'viaduct'],
+    ['PA', 'parkinglot', 'parking'],
+    ['RI', 'river']
 ]
 
 classAssoc = {}
@@ -23,4 +23,4 @@ classAssoc_inv = {}
 for idx, classList in enumerate(raw):
     for className in classList:
         classAssoc[className] = idx
-        classAssoc_inv[idx] = className
+    classAssoc_inv[idx] = raw[idx][0]
