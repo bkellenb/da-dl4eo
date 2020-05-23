@@ -93,6 +93,7 @@ To replicate the results, the following experiments need to be conducted:
     # train base models
     python 1_train.py --dataset UCMerced
     python 1_train.py --dataset WHU-RS19
+    python 1_train.py --dataset both
 
 
     # adapt
@@ -111,10 +112,12 @@ To replicate the results, the following experiments need to be conducted:
     python 3_test.py --dataset_target UCMerced --dataset_model WHU-RS19 --daMethod DeepCORAL
     python 3_test.py --dataset_target UCMerced --dataset_model WHU-RS19 --daMethod DeepJDOT
     python 3_test.py --dataset_target UCMerced --dataset_model UCMerced
+    python 3_test.py --dataset_target UCMerced --dataset_model all
 
     python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced
     python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod MMD
     python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod DeepCORAL
     python 3_test.py --dataset_target WHU-RS19 --dataset_model UCMerced --daMethod DeepJDOT
     python 3_test.py --dataset_target WHU-RS19 --dataset_model WHU-RS19
+    python 3_test.py --dataset_target WHU-RS19 --dataset_model all
 ```

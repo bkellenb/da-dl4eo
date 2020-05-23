@@ -12,7 +12,7 @@ from tqdm import trange
 import torch
 from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 import torch.nn.functional as F
 import torchvision.transforms as tr
 from models import ClassificationModel
@@ -22,7 +22,7 @@ from datasets import RSClassificationDataset
 ''' Parameters '''
 parser = argparse.ArgumentParser(description='Base model training.')
 parser.add_argument('--dataset', type=str, default='WHU-RS19', const=1, nargs='?',
-                    help='Source dataset. One of {"UCMerced", "WHU-RS19"}.')
+                    help='Source dataset. One of {"UCMerced", "WHU-RS19", "all"}.')
 parser.add_argument('--backbone', type=str, default='resnet50', const=1, nargs='?',
                     help='Feature extractor backbone to use (default: "resnet50").')
 parser.add_argument('--batchSize', type=int, default=32, const=1, nargs='?',
@@ -78,11 +78,25 @@ def loadDataset(setIdx, transform):
         labels = [classAssoc[d[1]] for d in data]
         return torch.stack(imgs), torch.tensor(labels, dtype=torch.long)
 
+    if dataset == 'all':
+        ds = ConcatDataset([
+            RSClassificationDataset('UCMerced',
+                setIdx,
+                classAssoc,
+                transform),
+            RSClassificationDataset('WHU-RS19',
+                setIdx,
+                classAssoc,
+                transform)
+        ])
+    else:
+        ds = RSClassificationDataset(dataset,
+                setIdx,
+                classAssoc,
+                transform)
+
     return DataLoader(
-        RSClassificationDataset(dataset,
-            setIdx,
-            classAssoc,
-            transform),
+        ds,
         batch_size=args.batchSize,
         collate_fn=collate,
         shuffle=True
