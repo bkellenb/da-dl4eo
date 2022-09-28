@@ -1,7 +1,6 @@
 # Deep Learning for Earth Observation: Chapter Domain Adaptation
 
-Code base for reproducing the experiments in the book "[Deep Learning for the Earth Sciences: A Comprehensive Approach to Remote Sensing, Climate Science, and Geosciences](https://onlinelibrary.wiley.com/doi/book/10.1002/9781119646181)", Chapter 7: "[Deep Domain Adaptation in Earth Observation
-](https://onlinelibrary.wiley.com/doi/10.1002/9781119646181.ch7)", Section "1.3.1 Adapting the inner representation."
+Code base for reproducing the experiments in the book "[Deep Learning for the Earth Sciences: A Comprehensive Approach to Remote Sensing, Climate Science, and Geosciences](https://onlinelibrary.wiley.com/doi/book/10.1002/9781119646181)", Chapter 7: "[Deep Domain Adaptation in Earth Observation](https://onlinelibrary.wiley.com/doi/10.1002/9781119646181.ch7)", Section "1.3.1 Adapting the inner representation."
 
 
 ## Overview
